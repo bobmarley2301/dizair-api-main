@@ -30,7 +30,7 @@ const TaskCard = React.memo(function TaskCard({ todo, onTodoClick, onToggle, onD
         <CardId>#{todo.id}</CardId>
         <CardActions>
           <ToggleButton
-            completed={todo.completed}
+            completed={todo.completed || false}
             onClick={(e) => onToggle(e, todo.id)}
           >
             {todo.completed && '\u2713'}
