@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { fetchTodoById, clearCurrentTodo, updateTodo, deleteTodo } from '../store/tasksSlice';
@@ -38,15 +38,15 @@ export default function TaskDetail({ taskId }: TaskDetailProps) {
     }
   }, [currentTodo]);
 
-  const handleBackClick = () => {
+  const handleBackClick = useCallback(() => {
     router.push('/');
-  };
+  }, [router]);
 
-  const handleEdit = () => {
+  const handleEdit = useCallback(() => {
     setIsEditing(true);
-  };
+  }, []);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     if (currentTodo && editTitle.trim()) {
       await dispatch(updateTodo({
         ...currentTodo,
@@ -55,22 +55,24 @@ export default function TaskDetail({ taskId }: TaskDetailProps) {
       }));
       setIsEditing(false);
     }
-  };
+  }, [currentTodo, editTitle, editCompleted, dispatch]);
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     if (currentTodo) {
       setEditTitle(currentTodo.title);
       setEditCompleted(currentTodo.completed);
     }
     setIsEditing(false);
-  };
+  }, [currentTodo]);
 
-  const handleDelete = async () => {
+  const handleDelete = useCallback(async () => {
     if (currentTodo && confirm('Are you sure you want to delete this task?')) {
       await dispatch(deleteTodo(currentTodo.id));
       router.push('/');
     }
-  };
+  }, [currentTodo, dispatch, router]);
+
+  const statusText = useMemo(() => currentTodo?.completed ? 'Completed' : 'In Progress', [currentTodo]);
 
   if (loading) {
     return <p style={{ color: '#6366f1', textAlign: 'center', fontWeight: 600 }}>Loading task...</p>;
@@ -107,7 +109,7 @@ export default function TaskDetail({ taskId }: TaskDetailProps) {
         <DetailHeader>
           <DetailId>Task #{currentTodo.id}</DetailId>
           <DetailStatus completed={currentTodo.completed}>
-            {currentTodo.completed ? 'Completed' : 'In Progress'}
+            {statusText}
           </DetailStatus>
         </DetailHeader>
 
@@ -143,7 +145,7 @@ export default function TaskDetail({ taskId }: TaskDetailProps) {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{ fontSize: '1rem', color: '#6b7280' }}>Status:</span>
               <DetailStatus completed={currentTodo.completed}>
-                {currentTodo.completed ? 'Completed' : 'In Progress'}
+                {statusText}
               </DetailStatus>
             </div>
           </div>
